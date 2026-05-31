@@ -16,3 +16,19 @@ By introducing a novel iterative activation-patching protocol, our framework ext
 * **Multiple layers required:** There isn't just one single layer responsible for fetching a fact; the entity must be processed by multiple layers before the information is fully available.
 * **Minimal paths are often sparse and non contiguous:** Only a subset of layers participate in each factual recall process, while others may be skipped. 
 * **Backup paths exist:** Minimal paths are not unique. For most facts, the model has alternative paths for retrieving the information. These backup paths are usually longer and deeper in the model than the paths used during a normal, uninterrupted run.
+
+## Dataset
+
+Our experiments are conducted using a curated subset of **2,000 samples** from the **CounterFact dataset** (Meng et al., 2022). These specific samples are packaged directly within this codebase for ease of use and reproducibility.
+
+If you use this data or codebase, please make sure to cite the original CounterFact paper:
+
+```bibtex
+@article{meng2022locating,
+  title={Locating and Editing Factual Associations in {GPT}},
+  author={Kevin Meng and David Bau and Alex Andonian and Yonatan Belinkov},
+  journal={Advances in Neural Information Processing Systems},
+  volume={36},
+  year={2022},
+  note={arXiv:2202.05262}
+}

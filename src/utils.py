@@ -45,10 +45,10 @@ def compare_pred_and_target(model: Any, last_predicted_id: int, target_attribute
     
     is_correct = (prediction.strip() == target_attribute.strip())
 
-    if is_correct:
-        print(f"Success: Predicted '{prediction}' matches '{target_attribute}'")
-    else:
-        print(f"Failed: Predicted '{prediction}' instead of '{target_attribute}'")
+    # if is_correct:
+    #     print(f"Success: Predicted '{prediction}' matches '{target_attribute}'")
+    # else:
+    #     print(f"Failed: Predicted '{prediction}' instead of '{target_attribute}'")
         
     return is_correct
 
@@ -136,3 +136,21 @@ def get_counterfact_entity(model, prompt_template, entity, relation_id, target_t
             if counterfact_ent_slice and counterfact_ent_slice == entity_slice and not check_attribute_recall(model, counterfact_prompt, target_token):
                 return counterfact_entity
     return None
+
+
+def get_path_inputs(model: Any, prompt: str, ent_slice: Union[slice, list, int], path_layers_indices: list) -> Dict[int, Any]:
+    """
+    Collects the inputs for the specified layers in the path.
+        
+    Returns:
+        Dict[int, Any]: A dictionary mapping layer indices to their corresponding inputs, 
+        Any: The output representation of the last layer in the path.
+    """
+    activations = {}
+
+    with model.trace(prompt):
+        for layer_idx in path_layers_indices:
+            inp = model.model.layers[layer_idx].input[:, ent_slice, :].save()
+            activations[layer_idx] = inp
+    
+    return activations, output_rep

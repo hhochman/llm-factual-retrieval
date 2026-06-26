@@ -8,6 +8,7 @@ import logging
 from src.loaders import load_model
 from src.search import find_l_attr, find_minimal_path
 from src.utils import set_seed
+from tqdm import tqdm
 
 
 
@@ -30,15 +31,13 @@ def main():
     logging.info(f"Loading data from {args.data_path}...")
     dataset = json.load(open(args.data_path, 'r'))
 
-    # for debug - get only the first 10 items
-    # dataset = dataset[:10]
     
 
     # Ensure output directory exists
     os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
 
     with open(args.output_path, 'a') as f:
-        for item in dataset:
+        for item in tqdm(dataset, desc="Processing items"):
             case_id = item['case_id']
             entity = item['entity']
             counterfact_entity = item['counterfact_entity']

@@ -1,0 +1,6 @@
+nnsight==0.4.6
+numpy==2.5.0
+Requests==2.34.2
+torch==2.7.0
+tqdm==4.65.0
+transformers==4.57.1

@@ -56,20 +56,35 @@ def test_path_extension(
     path_inputs: Dict[int, Any],
     counterfactual_inputs: Dict[int, Any],
     candidate_layer: int,
-    upper_bound: int
+    upper_bound: int,
+    run_isolation_only_check: bool = True
 ) -> Tuple[bool, Any]:
     """
     Tests if a prefix is valid by composing isolate() and lock().
     """
-    with model.trace(prompt) as edited_model:
+    # Step 1: ISOLATE the path and check if the attribute is retrieved
+    if run_isolation_only_check:
+        with model.trace(prompt):
+            
+            # ISOLATE
+            isolate_path(model, path_inputs, counterfactual_inputs, ent_slice, candidate_layer)
+            last_predicted_id = model.lm_head.output.argmax(dim=-1)[0][-1].save()
         
-        # 1. ISOLATE: Route the signal up to the candidate layer
+        # Check if this composition successfully retrieved the attribute
+        is_correct = compare_pred_and_target(model, last_predicted_id, expected_token)
+
+        if not is_correct:
+            return False, None
+    
+    # step 2: ISOLATE the path AND LOCK the upper bound and check if the attribute is still retrieved
+    with model.trace(prompt):
+        
         isolate_path(model, path_inputs, counterfactual_inputs, ent_slice, candidate_layer)
 
         # Extract the candidate layer's output
         candidate_output = model.model.layers[candidate_layer].output[0][ent_slice, :].save()
         
-        # 2. LOCK: Extract upper bound output and override all subsequent layers
+        # LOCK: Extract upper bound output and override all subsequent layers
         next_after_upper = upper_bound + 1
         last_layer = len(model.model.layers) - 1
 
@@ -141,21 +156,24 @@ def find_minimal_path(
                 path_prefix_output = candidate_output
                 current_layer = candidate_layer
                 jump_successful = True
+
+                if candidate_layer == upper_bound:
+                    return path_layers
                 
                 # Check if this new candidate layer is sufficient on its own to be the new upper bound
                 is_sufficient, _ = test_path_extension(
                     model, counterfact_prompt, expected_token, ent_slice, 
                     path_inputs, counterfactual_inputs, 
                     candidate_layer=candidate_layer, 
-                    upper_bound=candidate_layer
+                    upper_bound=candidate_layer,
+                    run_isolation_only_check=False
                 )
 
                 if is_sufficient:
                     print(f"Early sufficiency reached at layer {candidate_layer}. Stopping search.")
-                    # Redefine l_attr for later analyses as noted in the paper
                     return path_layers
                 
-                break # Break the inner loop, start searching for the next jump
+                break
 
             del path_inputs[candidate_layer] # Clean up for the next candidate
 

@@ -17,6 +17,19 @@ By introducing a novel iterative activation-patching protocol, our framework ext
 * **Minimal paths are often sparse and non contiguous:** Only a subset of layers participate in each factual recall process, while others may be skipped. 
 * **Backup paths exist:** Minimal paths are not unique. For most facts, the model has alternative paths for retrieving the information. These backup paths are usually longer and deeper in the model than the paths used during a normal, uninterrupted run.
 
+## Repository Map
+
+| File / Folder | Description |
+| --- | --- |
+| `data/` | Sampled CounterFact subsets and the computed computation-path outputs for each supported model. |
+| `data/Llama-3.1-8B/` | Llama-3.1-8B sampled data and saved path-search results. |
+| `data/Qwen3-8B/` | Qwen3-8B sampled data and saved path-search results. |
+| `src/patching.py` | Core patching functions implementing the `lock` and `isolate` operations. |
+| `src/search.py` | Iterative algorithm for discovering minimal computation paths. |
+| `scripts/` | Command-line utilities for CounterFact sampling and path-search execution. |
+| `scripts/prepare_dataset.py` | Builds the sampled CounterFact subset used in the experiments. |
+| `scripts/run_path_search.py` | Runs computation-path extraction on the prepared dataset. |
+
 ## Dataset
 
 Our experiments are conducted using a curated subset of **2,000 samples** from the **CounterFact dataset** (Meng et al., 2022). These specific samples are packaged directly within this codebase for ease of use and reproducibility.

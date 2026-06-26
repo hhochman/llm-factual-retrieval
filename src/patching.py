@@ -19,7 +19,7 @@ def isolate_path(
             edited_model.model.layers[next_layer_idx].input[:, ent_slice, :] = counterfactual_inputs[next_layer_idx]
 
 
-def lock_activations(
+def lock_activation(
     edited_model: Any, 
     activation_to_inject: Any, 
     start_layer_idx: int, 

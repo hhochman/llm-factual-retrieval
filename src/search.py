@@ -1,5 +1,5 @@
 from typing import Dict, Any, Union, Tuple, List
-from .patching import isolate_path, lock_activations
+from .patching import isolate_path, lock_activation
 from .utils import *
 
 def find_l_attr(
@@ -34,7 +34,7 @@ def find_l_attr(
             rep_to_inject = model.model.layers[next_layer].input[:, ent_slice, :]
             
             # Lock this clean representation
-            lock_activations(model, rep_to_inject, next_layer, num_layers-1, ent_slice)
+            lock_activation(model, rep_to_inject, next_layer, num_layers-1, ent_slice)
             
             # Predict the final token
             last_predicted_id = model.lm_head.output[0, -1, :].argmax(dim=-1).save()
@@ -92,7 +92,7 @@ def test_path_extension(
             upper_bound_output = model.model.layers[next_after_upper].input[:, ent_slice, :]
 
             # Lock all layers from next_after_upper to the end of the model
-            lock_activations(model, upper_bound_output, next_after_upper, last_layer, ent_slice)
+            lock_activation(model, upper_bound_output, next_after_upper, last_layer, ent_slice)
         
         last_predicted_id = model.lm_head.output.argmax(dim=-1)[0][-1].save()
         

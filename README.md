@@ -2,9 +2,7 @@
 
 This repository contains the code implementation for the paper **"Factual Retrieval in LLMs Is a Redundant, Distributed and Non-Contiguous Process"**, accepted for presentation at **ACL 2026**.
 
-> **Repository Under Construction** > We are currently cleaning our codebase and uploading it stage-by-stage. Stay tuned for updates!  
-
----
+[![arXiv](https://img.shields.io/badge/arXiv-2606.21345-B31B1B.svg)](https://arxiv.org/abs/2606.21345)
 
 ## Project Overview
 

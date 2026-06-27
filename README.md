@@ -26,9 +26,11 @@ By introducing a novel iterative activation-patching protocol, our framework ext
 | `data/Qwen3-8B/` | Qwen3-8B sampled data and saved path-search results. |
 | `src/patching.py` | Core patching functions implementing the `lock` and `isolate` operations. |
 | `src/search.py` | Iterative algorithm for discovering minimal computation paths. |
+| `src/experiments.py` | Additional experimental variants outside the main path search. |
 | `scripts/` | Command-line utilities for CounterFact sampling and path-search execution. |
 | `scripts/prepare_dataset.py` | Builds the sampled CounterFact subset used in the experiments. |
 | `scripts/run_path_search.py` | Runs computation-path extraction on the prepared dataset. |
+| `scripts/run_sufficiency_experiments.py` | Runs sufficiency tests for the constructed entity representation. |
 
 ## Dataset
 

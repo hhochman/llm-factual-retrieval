@@ -1,5 +1,6 @@
-from typing import List, Any
+from typing import List, Any, Union, Dict
 from .patching import isolate_path, lock_activation
+from .utils import compare_pred_and_target
 
 def representation_knockout(
     edited_model: Any,
@@ -39,8 +40,7 @@ def downstream_injection(
     edited_model.model.layers[0].input[:, ent_slice, :] = counterfactual_inputs[0]
 
     # Inject the representation at l_attr output into all subsequent layers
-    for layer_idx in range(l_attr + 1, len(edited_model.model.layers)):
-        edited_model.model.layers[layer_idx].input[:, ent_slice, :] = l_attr_rep 
+    lock_activation(edited_model, l_attr_rep, l_attr, len(edited_model.model.layers) - 1, ent_slice)
 
 
 def path_and_continuation(
@@ -48,6 +48,7 @@ def path_and_continuation(
     ent_slice: Union[slice, list, int],
     counterfactual_inputs: Dict[int, Any],
     path_layers_indices: List[int],
+    l_attr: int,
     l_attr_rep: Any,
 ) -> None:
     """
@@ -80,7 +81,8 @@ def run_sufficiency_test(
     expected_token: str,
     ent_slice: Union[slice, list, int], 
     path_inputs: Dict[int, Any],
-    counterfactual_inputs: Dict[int, Any], 
+    counterfactual_inputs: Dict[int, Any],
+    l_attr: int, 
     l_attr_rep: Any,
     intervention_type: str
 ) -> bool:
@@ -98,14 +100,13 @@ def run_sufficiency_test(
     Returns:
         bool: True if the model correctly predicted the target attribute, False otherwise.
     """
-    l_attr = max(path_inputs.keys())  # The last layer in the path is l_attr
     with model.trace(prompt):
         if intervention_type == "representation_knockout":
             representation_knockout(model, ent_slice, path_inputs, counterfactual_inputs, l_attr)
         elif intervention_type == "downstream_injection":
             downstream_injection(model, ent_slice, counterfactual_inputs, l_attr, l_attr_rep)
         elif intervention_type == "path_continuation":
-            path_and_continuation(model, ent_slice, counterfactual_inputs, list(path_inputs.keys()), l_attr_rep)
+            path_and_continuation(model, ent_slice, counterfactual_inputs, list(path_inputs.keys()), l_attr, l_attr_rep)
         elif intervention_type == "global_broadcast":
             global_broadcast(model, ent_slice, l_attr_rep)
         else:

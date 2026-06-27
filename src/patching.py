@@ -27,6 +27,13 @@ def lock_activation(
     ent_slice: Union[slice, list, int]
 ) -> None:
     """Applies the lock operation to the active edited_model."""
+    if start_layer_idx >= len(edited_model.model.layers):
+        return
+
+    if start_layer_idx == -1:
+        edited_model.model.embed_tokens.output[0][ent_slice, : ] = activation_to_inject
+        start_layer_idx = 0
+        
     for layer_idx in range(start_layer_idx, end_layer_idx + 1):
         # print(f"Locking layer {layer_idx} with injected activation.")
         edited_model.model.layers[layer_idx].output[0][ent_slice, : ] = activation_to_inject

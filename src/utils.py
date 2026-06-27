@@ -1,7 +1,8 @@
-from typing import Any, Union, Dict
+from typing import Any, Union, Dict, List, Tuple
 import random
 import numpy as np
 import torch
+from .patching import isolate_path, lock_activation
 
 def set_seed(seed):
     random.seed(seed)
@@ -138,19 +139,48 @@ def get_counterfact_entity(model, prompt_template, entity, relation_id, target_t
     return None
 
 
-def get_path_inputs(model: Any, prompt: str, ent_slice: Union[slice, list, int], path_layers_indices: list) -> Dict[int, Any]:
+def apply_path_and_check(
+    model: Any,
+    clean_prompt: str,
+    counterfact_prompt: str,
+    expected_token: str,
+    ent_slice: Union[slice, list, int],
+    path_layers_indices: List[int],
+) -> Tuple[bool, Dict[int, Any], Any]:
     """
     Collects the inputs for the specified layers in the path.
         
     Returns:
-        Dict[int, Any]: A dictionary mapping layer indices to their corresponding inputs, 
+        Boolean: True if the path successfully retrieves the attribute, False otherwise.
+        Dict[int, Any]: A dictionary mapping layer indices to their corresponding inputs. 
         Any: The output representation of the last layer in the path.
     """
-    activations = {}
+    clean_inputs = collect_layer_inputs(model, clean_prompt, ent_slice)
+    path_inputs: Dict[int, Any] = {}
+    path_prefix_output = clean_inputs[0]  # Start with the clean embedding as the initial path input
+    actual_path_layers = [layer_idx for layer_idx in path_layers_indices if layer_idx >= 0]
 
-    with model.trace(prompt):
-        for layer_idx in path_layers_indices:
-            inp = model.model.layers[layer_idx].input[:, ent_slice, :].save()
-            activations[layer_idx] = inp
-    
-    return activations, output_rep
+    # For cases where l_attr is the embedding layer
+    if len(actual_path_layers) == 0:
+        with model.trace(clean_prompt):
+            lock_activation(model, path_prefix_output, 0, len(model.model.layers) - 1, ent_slice)
+            last_predicted_id = model.lm_head.output.argmax(dim=-1)[0][-1].save()
+        is_correct = compare_pred_and_target(model, last_predicted_id, expected_token)
+        return is_correct, {}, clean_inputs[0]
+
+    # Pre-compute counterfactual inputs for the intermediate skipped layers
+    counterfactual_inputs = collect_layer_inputs(model, counterfact_prompt, ent_slice)
+
+    with model.trace(clean_prompt):
+        for layer_idx in actual_path_layers:
+            path_inputs[layer_idx] = path_prefix_output
+            isolate_path(model, path_inputs, counterfactual_inputs, ent_slice, layer_idx)
+            path_prefix_output = model.model.layers[layer_idx].output[0][ent_slice, :].clone().save()
+        lock_activation(model, path_prefix_output, actual_path_layers[-1], len(model.model.layers) - 1, ent_slice)
+        last_predicted_id = model.lm_head.output.argmax(dim=-1)[0][-1].save()
+        
+    # Check if this composition successfully retrieved the attribute
+    is_correct = compare_pred_and_target(model, last_predicted_id, expected_token)
+    path_output = path_prefix_output
+
+    return is_correct, path_inputs, path_output

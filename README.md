@@ -45,3 +45,26 @@ If you use this data or codebase, please make sure to cite the original CounterF
   year={2022},
   note={arXiv:2202.05262}
 }
+```
+
+## Citation
+
+```bibtex
+@inproceedings{hochman-etal-2026-factual,
+    title = "Factual Retrieval in {LLM}s Is a Redundant, Distributed and Non-Contiguous Process",
+    author = "Hochman, Hail  and
+      Shapira, Natalie  and
+      Goldberg, Yoav",
+    editor = "Liakata, Maria  and
+      Moreira, Viviane P.  and
+      Zhang, Jiajun  and
+      Jurgens, David",
+    booktitle = "Proceedings of the 64th Annual Meeting of the {A}ssociation for {C}omputational {L}inguistics (Volume 1: Long Papers)",
+    month = jul,
+    year = "2026",
+    address = "San Diego, California, United States",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2026.acl-long.2168/",
+    pages = "46747--46768"
+}
+
